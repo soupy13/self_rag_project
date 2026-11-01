@@ -1,0 +1,4 @@
+-r requirements.txt
+chromadb>=0.5
+fastembed>=0.4
+numpy

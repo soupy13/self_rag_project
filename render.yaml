@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: self-rag-app
+    runtime: python
+    plan: free                # lite keyword mode fits 512 MB; no card needed
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 1 --threads 8 --timeout 300 --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
+      - key: SEMANTIC
+        value: "0"
+      - key: MAX_CHUNKS
+        value: "8000"

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Self-RAG Workbench</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f5f2;--sf:#fff;--ink:#17211e;--mu:#5d6b66;--ln:#d9dfdb;--pr:#0e7c66;--prs:#dff2ec;--am:#b86e00;--ams:#fdf0d9;--rd:#b3261e;--rds:#fbe4e2;
+--ui:"Instrument Sans",system-ui,-apple-system,Segoe UI,sans-serif;--rd-f:"Newsreader",Georgia,"Times New Roman",serif}
+[data-theme=dark]{--bg:#0e1411;--sf:#151e19;--ink:#e6eee9;--mu:#93a49c;--ln:#26332c;--pr:#3dcba6;--prs:#12352c;--am:#f0b04a;--ams:#35280f;--rd:#ff8a80;--rds:#3a1a18}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--ui)}
+button{font:inherit;cursor:pointer}:focus-visible{outline:2px solid var(--pr);outline-offset:2px}
+header{display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 24px;border-bottom:1px solid var(--ln);background:var(--sf)}
+.logo{display:flex;align-items:center;gap:10px;font:600 20px var(--rd-f)}.logo svg{width:26px;height:26px}
+.hr{display:flex;align-items:center;gap:12px}.pill{font-size:13px;padding:4px 12px;border-radius:99px;background:var(--prs);color:var(--pr);font-weight:500}.pill.w{background:var(--ams);color:var(--am)}.pill.n{background:var(--ln);color:var(--mu)}
+.ic{background:none;border:1px solid var(--ln);color:var(--ink);border-radius:8px;padding:5px 10px}
+.app{display:grid;grid-template-columns:290px minmax(0,1fr) 330px;min-height:calc(100vh - 56px)}
+.rail{padding:22px 20px;background:var(--sf)}.rail.l{border-right:1px solid var(--ln)}.rail.r{border-left:1px solid var(--ln)}
+.rail h2{font:600 16px var(--rd-f);margin:0 0 4px}.rail p.s{margin:0 0 14px;color:var(--mu);font-size:13px}
+.drop{display:block;border:1.5px dashed var(--ln);border-radius:12px;padding:20px 14px;text-align:center;cursor:pointer;transition:.15s}
+.drop:hover,.drop.on{border-color:var(--pr);background:var(--prs)}.drop b{display:block;font-weight:600}.drop span{font-size:12px;color:var(--mu)}
+.drop input{display:none}.files{list-style:none;margin:14px 0 0;padding:0}.files li{padding:9px 0;border-bottom:1px solid var(--ln);font-size:14px;word-break:break-all}
+.files small{display:block;color:var(--mu)}.tot{margin:12px 0 0;font-size:13px;color:var(--mu)}
+.bar{height:3px;background:var(--ln);border-radius:3px;margin:12px 0 4px;overflow:hidden;display:none}.bar.on{display:block}.bar i{display:block;height:100%;width:35%;background:var(--pr);animation:sl 1.1s infinite ease-in-out}
+@keyframes sl{0%{margin-left:-35%}100%{margin-left:100%}}
+.msgtxt{font-size:13px;color:var(--mu)}.err{margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--rds);color:var(--rd);font-size:13px}
+.lk{background:none;border:0;color:var(--mu);text-decoration:underline;padding:0;margin-top:12px;font-size:13px}
+.main{padding:28px clamp(16px,4vw,48px) 0;display:flex;flex-direction:column;min-width:0}
+#chat{flex:1;display:flex;flex-direction:column;gap:22px;padding-bottom:20px}
+.empty{margin:8vh auto 0;max-width:520px;text-align:left}.empty h1{font:600 32px/1.2 var(--rd-f);margin:0 0 10px}.empty p{color:var(--mu);font-size:16px;margin:0 0 18px}
+.sug{display:flex;flex-wrap:wrap;gap:8px}.sug button{border:1px solid var(--ln);background:var(--sf);color:var(--ink);border-radius:99px;padding:8px 14px;font-size:14px}.sug button:hover{border-color:var(--pr);color:var(--pr)}
+.u{align-self:flex-end;max-width:80%;background:var(--ink);color:var(--bg);padding:10px 15px;border-radius:14px 14px 3px 14px;white-space:pre-wrap}
+.a{border-left:3px solid var(--pr);padding:2px 0 2px 18px;max-width:760px}.a.diverge,.a.draft{border-color:var(--am)}.a.absent{border-color:var(--mu)}.a.fail{border-color:var(--rd)}
+.ans{font:400 17.5px/1.65 var(--rd-f)}.ans table{border-collapse:collapse;margin:8px 0;font:14px var(--ui);display:block;overflow-x:auto}.ans th,.ans td{border:1px solid var(--ln);padding:5px 10px;text-align:left}.ans th{background:var(--prs)}
+.ans code{font-size:.9em;background:var(--prs);padding:1px 5px;border-radius:4px}.cite{font:600 11px var(--ui);color:var(--pr);margin-left:1px}
+.seal{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;font-size:13px}
+.badge{font-weight:600;padding:3px 10px;border-radius:99px;background:var(--prs);color:var(--pr)}.diverge .badge{background:var(--ams);color:var(--am)}.absent .badge{background:var(--ln);color:var(--mu)}.fail .badge{background:var(--rds);color:var(--rd)}
+.chip{color:var(--mu);border:1px solid var(--ln);border-radius:99px;padding:2px 9px}.chip.ok{color:var(--pr);border-color:var(--pr)}.chip.no{color:var(--am);border-color:var(--am)}
+.hint{margin:8px 0 0;font-size:13.5px;color:var(--mu)}
+details.ev{margin-top:10px;font-size:13.5px}details.ev summary{cursor:pointer;color:var(--pr);font-weight:500}
+.ev ol{margin:8px 0 0;padding-left:20px}.ev li{margin-bottom:8px}.ev q{display:block;color:var(--mu);font-family:var(--rd-f);font-size:14px;quotes:none;border-left:2px solid var(--ln);padding-left:8px;margin-top:2px}
+.acts{margin-top:8px}.acts button{background:none;border:0;color:var(--mu);font-size:13px;padding:2px 0}.acts button:hover{color:var(--ink)}
+.dots{display:inline-flex;gap:5px;padding:8px 0}.dots i{width:7px;height:7px;border-radius:50%;background:var(--mu);animation:bl 1.2s infinite}.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes bl{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.composer{position:sticky;bottom:0;background:var(--bg);padding:12px 0 20px}.cw{display:flex;gap:8px;background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:6px}
+.cw:focus-within{border-color:var(--pr)}.cw input{flex:1;border:0;background:none;color:var(--ink);font:inherit;font-size:16px;padding:8px 10px;outline:0;min-width:0}
+.go{background:var(--pr);color:#fff;border:0;border-radius:10px;padding:0 20px;font-weight:600}[data-theme=dark] .go{color:#08120e}.go:disabled{opacity:.45;cursor:not-allowed}
+.note{font-size:12px;color:var(--mu);margin:8px 4px 0}
+.track{list-style:none;margin:14px 0 0;padding:0}.node{position:relative;padding:0 0 16px 26px}
+.node:before{content:"";position:absolute;left:5px;top:16px;bottom:-2px;width:2px;background:var(--ln)}.node:last-child:before{display:none}
+.node:after{content:"";position:absolute;left:0;top:4px;width:12px;height:12px;border-radius:50%;border:2px solid var(--ln);background:var(--sf)}
+.node.done:after{background:var(--pr);border-color:var(--pr)}.node.done:before{background:var(--pr)}.node.run:after{border-color:var(--pr);animation:pu 1s infinite}
+@keyframes pu{50%{box-shadow:0 0 0 5px var(--prs)}}.node b{font-weight:600;font-size:14px;display:block}.node .d{font-size:12.5px;color:var(--mu)}.node.wait b{color:var(--mu);font-weight:500}
+.legend{margin-top:6px;padding-top:14px;border-top:1px solid var(--ln);font-size:12.5px;color:var(--mu)}.legend p{margin:0 0 6px}.legend b{color:var(--ink)}
+@media(max-width:1000px){.app{grid-template-columns:1fr}.rail.l,.rail.r{border:0;border-bottom:1px solid var(--ln)}.empty{margin-top:2vh}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<header><div class="logo"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="color:var(--pr)"><path d="M3 5c8 0 6 8 14 8M3 21c8 0 6-8 14-8"/><path d="M17 13h6M20 10l3 3-3 3"/></svg>Self-RAG Workbench</div>
+<div class="hr"><span class="pill n" id="st">No documents yet</span><button class="ic" id="th" title="Switch light or dark theme" aria-label="Switch theme">Theme</button></div></header>
+<div class="app">
+<aside class="rail l"><h2>Your documents</h2><p class="s">Answers come only from what you add here.</p>
+<label class="drop" id="drop"><input type="file" id="f" multiple accept=".pdf,.docx,.xlsx,.xlsm,.pptx,.txt,.md,.csv"><b>Drop files or browse</b><span>PDF, Word, Excel, PowerPoint, CSV, TXT</span></label>
+<div class="bar" id="bar"><i></i></div><div class="msgtxt" id="pg"></div><div id="er"></div>
+<ul class="files" id="ul"></ul><p class="tot" id="tot"></p><button class="lk" id="clr" hidden>Remove all documents</button></aside>
+<main class="main"><div id="chat" aria-live="polite">
+<div class="empty" id="empty"><h1>Ask your documents</h1><p>Every answer cites the passages it came from, and a second independent check tells you how far to trust it.</p>
+<div class="sug" id="sug"><button>Give me an overview of this data</button><button>Which columns or sections are covered?</button><button>What stands out in the numbers?</button></div></div></div>
+<div class="composer"><div class="cw"><input id="q" placeholder="Add a document to start asking" disabled autocomplete="off"><button class="go" id="go" disabled>Ask</button></div>
+<p class="note">Answers are model-generated. Checks reduce errors but do not remove them, so confirm important facts in the evidence.</p></div></main>
+<aside class="rail r"><h2>How it got there</h2><p class="s">Each question runs through these checks live.</p><ol class="track" id="track"></ol>
+<div class="legend"><p><b>Verified</b> means two independent paths agree and the answer matches your documents.</p><p><b>Checks disagree</b> means read the evidence before relying on it.</p><p><b>Not in your documents</b> means the files lack the answer, so nothing was guessed.</p></div></aside>
+</div>
+<script>
+const $=id=>document.getElementById(id);let sid=localStorage.sid||(localStorage.sid=crypto.randomUUID()),nq=0,hasDocs=false,busy=false;
+const esc=s=>String(s??"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const ORDER=["retrieve","grade_documents","check_answerability","generate","verify","grade_answer"];
+const LBL={retrieve:"Search documents",grade_documents:"Pick relevant passages",check_answerability:"Can this be answered?",generate:"Write the answer",verify:"Check it two ways",grade_answer:"Check it is useful",absence_flag:"Flag missing context"};
+$("track").innerHTML=[...ORDER,"absence_flag"].map(n=>`<li class="node wait" id="t-${n}" ${n==="absence_flag"?"hidden":""}><b>${LBL[n]}</b><span class="d"></span></li>`).join("");
+const cnt={};function setN(n,st,t){const el=$("t-"+n);if(!el)return;el.hidden=false;el.className="node "+st;el.querySelector(".d").textContent=t||""}
+function resetTrack(){for(const k in cnt)delete cnt[k];[...ORDER,"absence_flag"].forEach(n=>setN(n,"wait",""));$("t-absence_flag").hidden=true}
+// theme
+const th=localStorage.theme||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light");document.documentElement.dataset.theme=th;
+$("th").onclick=()=>{const d=document.documentElement.dataset.theme==="dark"?"light":"dark";document.documentElement.dataset.theme=d;localStorage.theme=d};
+// mini markdown
+function md(t){const L=esc(t).split("\n");let o="",tb=[];const fl=()=>{if(tb.length){const rows=tb.filter(r=>!/^[\s|:-]+$/.test(r)).map(r=>r.replace(/^\s*\||\|\s*$/g,"").split("|").map(c=>c.trim()));
+o+="<table>"+rows.map((r,i)=>"<tr>"+r.map(c=>i?`<td>${c}</td>`:`<th>${c}</th>`).join("")+"</tr>").join("")+"</table>";tb=[]}};
+for(const l of L){if(/^\s*\|.*\|\s*$/.test(l)){tb.push(l);continue}fl();o+=l.replace(/^\s*[-*] /,"&bull; ")+"<br>"}fl();
+return o.replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`(.+?)`/g,"<code>$1</code>").replace(/\[(\d+)\]/g,"<sup class='cite'>$1</sup>").replace(/(<br>)+$/,"")}
+// documents
+function showSrc(s){const v=Object.entries(s),n=v.reduce((a,b)=>a+b[1],0);hasDocs=v.length>0;
+$("ul").innerHTML=v.map(([k,c])=>`<li>${esc(k)}<small>${c.toLocaleString()} passages</small></li>`).join("");
+$("tot").textContent=hasDocs?`${v.length} file${v.length>1?"s":""}, ${n.toLocaleString()} passages, ${nq} question${nq===1?"":"s"} asked`:"";$("clr").hidden=!hasDocs;lock()}
+function lock(){const off=!hasDocs||busy;$("q").disabled=!hasDocs;$("go").disabled=off;$("q").placeholder=hasDocs?"Ask about your documents":"Add a document to start asking"}
+function pill(t,c){$("st").textContent=t;$("st").className="pill "+c}
+async function poll(){try{const r=await(await fetch("/sources?session="+sid)).json();showSrc(r.sources);const j=r.job,run=j&&(j.pending>0||j.embed_pending>0);
+$("er").innerHTML=((j&&j.errors)||[]).map(x=>`<div class="err">${esc(x)}</div>`).join("");$("bar").classList.toggle("on",!!run);
+let m="";if(j){if(j.pending>0)m=j.stage||"Reading your file...";else if(j.embed_pending>0)m=`Building semantic index ${j.done}/${j.total}. You can already ask questions.`}
+$("pg").textContent=m;pill(run?"Indexing...":hasDocs?"Ready to answer":"No documents yet",run?"w":hasDocs?"":"n");if(run)setTimeout(poll,1500)}catch(e){setTimeout(poll,3000)}}
+async function up(fs){if(!fs||!fs.length)return;const fd=new FormData();fd.append("session",sid);[...fs].forEach(f=>fd.append("files",f));
+$("pg").textContent="Uploading...";$("bar").classList.add("on");try{await fetch("/upload",{method:"POST",body:fd})}catch(e){$("pg").textContent="Upload failed. Check your connection and try again.";return}poll()}
+$("f").onchange=e=>{up(e.target.files);e.target.value=""};const dz=$("drop");
+["dragenter","dragover"].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.classList.add("on")}));
+["dragleave","drop"].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.classList.remove("on")}));dz.addEventListener("drop",e=>up(e.dataTransfer.files));
+$("clr").onclick=async()=>{if(!confirm("Remove all documents from this session?"))return;await fetch("/reset",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({session:sid})});nq=0;showSrc({});pill("No documents yet","n")};
+// chat
+function add(cls,html){$("empty")&&$("empty").remove();const d=document.createElement("div");d.className=cls;d.innerHTML=html;$("chat").append(d);d.scrollIntoView({block:"nearest"});return d}
+const HINT={high:"Two independent checks agree, and the answer matches your documents.",diverge:"The checks disagree. Compare the answer with the evidence before relying on it.",absent:"Your documents do not cover this. Try rewording, or add the missing file."};
+function finalMsg(e){const v=e.verdict||{},lv=v.level||"high";let h=`<div class="ans">${md(e.answer||"")}</div><div class="seal"><span class="badge">${esc(v.badge)}</span>`;
+if(lv!=="absent"&&"grounded"in v){h+=`<span class="chip ${v.grounded?"ok":"no"}">${v.grounded?"Claims supported":"Some claims unsupported"}</span><span class="chip ${v.agree?"ok":"no"}">${v.agree?"Independent answer agrees":"Independent answer differs"}</span>`;if(v.score)h+=`<span class="chip">Usefulness ${esc(v.score)}/5</span>`}
+h+=`</div>`+(HINT[lv]?`<p class="hint">${HINT[lv]}</p>`:"");
+if(lv==="diverge"&&(v.unsupported||[]).length)h+=`<p class="hint">Not backed by the text: ${esc(v.unsupported.map(x=>typeof x==="string"?x:JSON.stringify(x)).join("; "))}</p>`;
+const S=e.sources||[];if(S.length)h+=`<details class="ev"><summary>Evidence from ${S.length} passage${S.length>1?"s":""}</summary><ol>${S.map(s=>`<li><b>${esc(s.source)}</b>, ${esc(s.location)}<q>${esc(s.text)}</q></li>`).join("")}</ol></details>`;
+h+=`<div class="acts"><button>Copy answer</button></div>`;const d=add("a "+(["diverge","absent"].includes(lv)?lv:""),h);
+d.querySelector(".acts button").onclick=function(){navigator.clipboard.writeText(e.answer||"");this.textContent="Copied"};return d}
+async function ask(text){const q=(text||$("q").value).trim();if(!q||busy||!hasDocs)return;$("q").value="";busy=true;lock();add("u",esc(q));resetTrack();setN("retrieve","run","Working...");
+let wait=add("a draft",'<span class="dots"><i></i><i></i><i></i></span>'),draft=null,got=false;
+try{const res=await fetch("/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({session:sid,question:q})});
+const rd=res.body.getReader(),dec=new TextDecoder();let buf="";
+while(true){const{value,done}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const parts=buf.split("\n\n");buf=parts.pop();
+for(const p of parts){if(!p.startsWith("data: "))continue;const e=JSON.parse(p.slice(6));
+if(e.type==="step"){cnt[e.node]=(cnt[e.node]||0)+1;setN(e.node,"done",`${e.summary} (${e.ms} ms)${cnt[e.node]>1?" - retry "+cnt[e.node]:""}`);
+const abs=e.node==="check_answerability"&&/absent|not answerable|nothing retrieved/i.test(e.summary);const nx=abs?"absence_flag":ORDER[ORDER.indexOf(e.node)+1];if(nx)setN(nx,"run","Working...");
+if(e.node==="generate"&&e.data&&e.data.draft){wait&&wait.remove();wait=null;draft=draft||add("a draft","");draft.innerHTML=`<div class="ans">${md(e.data.draft)}</div><p class="hint">Draft. Checking it now...</p>`}}
+else if(e.type==="final"){got=true;wait&&wait.remove();wait=null;draft&&draft.remove();draft=null;finalMsg(e);$("sq")&&0;nq++;showSrc(await(await fetch("/sources?session="+sid)).json().then(r=>r.sources))}
+else if(e.type==="error"){got=true;wait&&wait.remove();wait=null;add("a fail",`<span class="badge">Something went wrong</span><p class="hint">${esc(e.message)}</p><p class="hint">Check the API key and model settings, then ask again.</p>`)}}}
+}catch(err){}
+wait&&wait.remove();if(!got)add("a fail",`<span class="badge">No answer received</span><p class="hint">The connection ended early. Ask again, or wait a minute if the server was waking up.</p>`);
+busy=false;lock();$("q").focus()}
+$("go").onclick=()=>ask();$("q").onkeydown=e=>{if(e.key==="Enter")ask()};$("sug").onclick=e=>{if(e.target.tagName==="BUTTON")ask(e.target.textContent)};
+poll();
+</script></body></html>

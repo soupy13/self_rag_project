@@ -1,0 +1,12 @@
+flask>=3.0
+gunicorn>=22.0
+python-dotenv>=1.0
+langchain-core>=0.3
+langchain-groq>=0.2
+langchain-text-splitters>=0.3
+langgraph>=0.2
+rank-bm25>=0.2.2
+pypdf>=4.0
+python-docx>=1.1
+openpyxl>=3.1
+python-pptx>=0.6.23
